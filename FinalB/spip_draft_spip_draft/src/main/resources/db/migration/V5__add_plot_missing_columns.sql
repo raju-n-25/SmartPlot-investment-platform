@@ -1,0 +1,3 @@
+ALTER TABLE plots
+    ADD COLUMN facing VARCHAR(50),
+ADD COLUMN legal_info VARCHAR(255);

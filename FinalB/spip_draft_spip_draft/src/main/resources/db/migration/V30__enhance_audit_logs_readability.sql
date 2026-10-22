@@ -1,0 +1,6 @@
+ALTER TABLE audit_logs
+ADD COLUMN actor_name VARCHAR(150) NULL,
+ADD COLUMN actor_email VARCHAR(150) NULL,
+ADD COLUMN category VARCHAR(80) NULL,
+ADD COLUMN target_label VARCHAR(255) NULL,
+ADD COLUMN metadata_json TEXT NULL;

@@ -1,0 +1,11 @@
+@"
+*.zip
+**/node_modules/
+**/dist/
+**/target/
+.env
+.env.*
+!.env.example
+.idea/
+.vscode/
+"@ | Set-Content -Path ".gitignore"

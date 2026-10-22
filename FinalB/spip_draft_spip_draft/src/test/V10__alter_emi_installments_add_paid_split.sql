@@ -1,0 +1,4 @@
+ALTER TABLE emi_installments
+    ADD COLUMN principal_paid DECIMAL(15,2) NOT NULL DEFAULT 0.00,
+    ADD COLUMN interest_paid DECIMAL(15,2) NOT NULL DEFAULT 0.00,
+    ADD COLUMN penalty_paid DECIMAL(15,2) NOT NULL DEFAULT 0.00;

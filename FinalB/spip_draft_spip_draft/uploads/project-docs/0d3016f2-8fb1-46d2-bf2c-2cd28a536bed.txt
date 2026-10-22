@@ -1,0 +1,1977 @@
+import { useState, useEffect, useMemo } from 'react';
+import { useSearchParams, useNavigate } from 'react-router-dom';
+import { motion } from 'framer-motion';
+
+// ============================================================
+// src/pages/builder/BuilderProjects.jsx
+// PREMIUM VERSION (Amenities + Documents FIXED)
+// ============================================================
+
+import { useEffect, useMemo, useState } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { useNavigate } from 'react-router-dom';
+import {
+  FiPlus,
+  FiFolder,
+
+FiChevronDown,
+  FiChevro
+FiX,
+  FiCheck,
+  FiAlertCircle,
+FiMapPin,
+FiLayers,
+  FiClock,
+
+FiCheckCircle,
+  FiClock,
+  FiAlertCircle,
+  FiX,
+  FiLayers,
+  FiHome,
+  FiFileText,
+
+ FiArrowRight,
+  FiGrid,
+ FiChevronDown,
+  FiChevronRight,
+  FiTrash2,
+  FiUpload,
+} from 'react-icons/fi';
+
+import BuilderSidebar from '../../components/layout/BuilderSidebar';
+import { useTheme } from '../../context/ThemeContext';
+
+import {
+  createProject,
+  getMyProjects,
+ saveProjectLegalDetails,
+ addAmenitiesBulk,
+  uploadProjectDocument,
+  getProjectDocuments,
+} from '../../api/builderApi';
+
+/* =========================
+   SHARED FIELD STYLES
+========================= */
+const inp = {
+  background: 'rgba(255,255,255,0.06)',
+  border: '1.5px solid rgba(86, 160, 196, 0.22)',
+  color: '#EAF4FF',
+  WebkitTextFillColor: '#EAF4FF',
+  borderRadius: '14px',
+  padding: '13px 15px',
+  width: '100%',
+  fontSize: '13px',
+  outline: 'none',
+  boxSizing: 'border-box',
+};
+
+
+
+version with amenities:
+import { useState, useEffect, useMemo } from 'react';
+import { useSearchParams, useNavigate } from 'react-router-dom';
+import { motion } from 'framer-motion';
+import {
+  FiPlus,
+  FiFolder,
+  FiChevronDown,
+  FiChevronUp,
+  FiX,
+  FiCheck,
+  FiAlertCircle,
+  FiMapPin,
+  FiLayers,
+  FiClock,
+  FiCheckCircle,
+  FiFileText,
+  FiArrowRight,
+  FiGrid,
+  FiHome,
+  FiShield,
+  FiBriefcase,
+  FiTrendingUp,
+  FiHash,
+} from 'react-icons/fi';
+import BuilderSidebar from '../../components/layout/BuilderSidebar';
+import { useTheme } from '../../context/ThemeContext';
+import {
+  createProject,
+  getMyProjects,
+  saveProjectLegalDetails,
+  addAmenitiesBulk,
+  uploadProjectDocument,
+} from '../../api/builderApi';
+/* =========================
+   SHARED FIELD STYLES
+========================= */
+const inp = {
+  background: 'rgba(255,255,255,0.055)',
+  border: '1px solid rgba(148,163,184,0.18)',
+  color: '#EAF4FF',
+  WebkitTextFillColor: '#EAF4FF',
+  borderRadius: '16px',
+  padding: '14px 16px',
+  width: '100%',
+  fontSize: '13px',
+  outline: 'none',
+  boxSizing: 'border-box',
+  transition: 'all 0.2s ease',
+  boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.02)',
+};
+
+const optStyle = { background: '#ffffff', color: '#0A0F1E' };
+
+const lbl = {
+  color: 'rgba(190,220,235,0.78)',
+  fontSize: '11px',
+  fontWeight: 800,
+  letterSpacing: '0.1em',
+  textTransform: 'uppercase',
+  display: 'block',
+  marginBottom: '8px',
+};
+
+const btnPrimary = {
+  background: 'linear-gradient(135deg, #174b72 0%, #267c8e 55%, #3B9797 100%)',
+  color: '#fff',
+  border: 'none',
+  borderRadius: '16px',
+  padding: '13px 20px',
+  fontWeight: 800,
+  fontSize: '13px',
+  cursor: 'pointer',
+  display: 'inline-flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  gap: '8px',
+  boxShadow: '0 14px 30px rgba(22,71,106,0.30)',
+};
+
+const btnSecondary = {
+  background: 'rgba(255,255,255,0.05)',
+  color: '#dbe9f4',
+  border: '1px solid rgba(148,163,184,0.18)',
+  borderRadius: '16px',
+  padding: '13px 20px',
+  fontWeight: 800,
+  fontSize: '13px',
+  cursor: 'pointer',
+};
+
+function getProjectThemeStyles(theme) {
+  const isDark = theme === 'dark';
+
+  return {
+    pageHeroBg: isDark
+      ? 'radial-gradient(circle at top right, rgba(59,151,151,0.14), transparent 24%), linear-gradient(180deg, #102543 0%, #0b1d35 100%)'
+      : 'linear-gradient(180deg, #ffffff 0%, #f3f8fc 100%)',
+
+    modalBg: isDark
+      ? 'radial-gradient(circle at top right, rgba(59,151,151,0.12), transparent 22%), linear-gradient(180deg, #0f223f 0%, #0b1b32 100%)'
+      : 'linear-gradient(180deg, #ffffff 0%, #f6f9fc 100%)',
+
+    cardBg: isDark
+      ? 'rgba(255,255,255,0.04)'
+      : 'rgba(255,255,255,0.96)',
+
+    softCardBg: isDark
+      ? 'linear-gradient(180deg, rgba(255,255,255,0.05), rgba(255,255,255,0.03))'
+      : 'linear-gradient(180deg, #ffffff, #f8fbfd)',
+
+    inputBg: isDark
+      ? 'rgba(255,255,255,0.055)'
+      : '#ffffff',
+
+    border: isDark
+      ? '1px solid rgba(148,163,184,0.14)'
+      : '1px solid rgba(15,23,42,0.08)',
+
+    textPrimary: isDark ? '#ffffff' : '#0f172a',
+    textSecondary: isDark ? 'rgba(198,219,233,0.72)' : '#475569',
+    textMuted: isDark ? 'rgba(190,220,235,0.58)' : '#64748b',
+    chipBg: isDark ? 'rgba(255,255,255,0.05)' : '#eef6f8',
+    chipText: isDark ? 'rgba(226,238,248,0.85)' : '#0f172a',
+    statBg: isDark ? 'rgba(255,255,255,0.05)' : '#f8fbfd',
+    overlay: isDark ? 'rgba(2, 6, 23, 0.72)' : 'rgba(15, 23, 42, 0.22)',
+  };
+}
+
+
+function getInputFocusStyle(el, active) {
+  if (active) {
+    el.style.border = '1px solid rgba(59,151,151,0.70)';
+    el.style.boxShadow = '0 0 0 4px rgba(59,151,151,0.12)';
+    el.style.background = 'rgba(255,255,255,0.07)';
+  } else {
+    el.style.border = '1px solid rgba(148,163,184,0.18)';
+    el.style.boxShadow = 'none';
+    el.style.background = 'rgba(255,255,255,0.055)';
+  }
+}
+
+/* =========================
+   HELPERS
+========================= */
+function getStatusMeta(status) {
+  const normalized = (status || 'PENDING').toUpperCase();
+
+  if (normalized === 'APPROVED') {
+    return {
+      label: 'Approved',
+      className: 'badge badge-success',
+      accent: '#47c59a',
+      icon: FiCheckCircle,
+    };
+  }
+
+  if (normalized === 'REJECTED') {
+    return {
+      label: 'Rejected',
+      className: 'badge badge-rose',
+      accent: '#d67a8e',
+      icon: FiAlertCircle,
+    };
+  }
+
+  return {
+    label: normalized === 'UNDER_REVIEW' ? 'Under Review' : 'Pending',
+    className: 'badge badge-warning',
+    accent: '#f2b563',
+    icon: FiClock,
+  };
+}
+
+function getProgress(project) {
+  const total = Number(project?.totalPlots || 0);
+  const available = Number(project?.availablePlots || 0);
+
+  if (total <= 0) return 0;
+  const sold = Math.max(total - available, 0);
+  return Math.min((sold / total) * 100, 100);
+}
+
+/* =========================
+   PREMIUM MODAL WRAPPER
+========================= */
+function Modal({ title, subtitle, onClose, children, ui, theme }) {
+  return (
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center p-3 md:p-5"
+      style={{
+        background: ui.overlay,
+        backdropFilter: 'blur(12px)',
+      }}
+    >
+      <motion.div
+        initial={{ opacity: 0, y: 20, scale: 0.98 }}
+        animate={{ opacity: 1, y: 0, scale: 1 }}
+        transition={{ duration: 0.24 }}
+        className="project-modal-scroll w-full max-w-7xl max-h-[92vh] overflow-y-auto rounded-[32px]"
+        style={{
+          background: ui.modalBg,
+          border: ui.border,
+          boxShadow:
+            theme === 'dark'
+              ? '0 30px 90px rgba(0,0,0,0.42)'
+              : '0 24px 60px rgba(15,23,42,0.12)',
+        }}
+      >
+        <div
+          className="px-5 md:px-8 pt-5 md:pt-7 pb-5 border-b"
+          style={{ borderColor: theme === 'dark' ? 'rgba(255,255,255,0.07)' : 'rgba(15,23,42,0.08)' }}
+        >
+          <div className="flex items-start justify-between gap-4">
+            <div className="min-w-0">
+              <div className="flex items-center gap-3 flex-wrap">
+                <div
+                  className="w-12 h-12 rounded-2xl flex items-center justify-center"
+                  style={{
+                    background:
+                      'linear-gradient(135deg, rgba(22,71,106,0.95), rgba(59,151,151,0.95))',
+                    boxShadow: '0 16px 35px rgba(22,71,106,0.28)',
+                    color: '#fff',
+                  }}
+                >
+                  <FiBriefcase size={20} />
+                </div>
+
+                <div>
+                  <p
+                    className="text-[11px] font-extrabold uppercase tracking-[0.16em]"
+                    style={{ color: theme === 'dark' ? 'rgba(159,221,228,0.9)' : '#2b7a8b' }}
+                  >
+                    Builder Workspace
+                  </p>
+                  <h3
+                    className="font-extrabold text-[24px] md:text-[28px] leading-tight"
+                    style={{ color: ui.textPrimary }}
+                  >
+                    {title}
+                  </h3>
+                </div>
+              </div>
+
+              <p
+                className="text-[13px] mt-3 max-w-3xl leading-6"
+                style={{ color: ui.textSecondary }}
+              >
+                {subtitle}
+              </p>
+            </div>
+
+            <button
+              onClick={onClose}
+              className="w-11 h-11 rounded-2xl flex items-center justify-center transition-all hover:scale-[1.03] shrink-0"
+              style={{
+                color: ui.textSecondary,
+                background: ui.cardBg,
+                border: ui.border,
+                cursor: 'pointer',
+              }}
+            >
+              <FiX size={18} />
+            </button>
+          </div>
+        </div>
+
+        <div className="p-5 md:p-8">{children}</div>
+      </motion.div>
+    </div>
+  );
+}
+
+function Field({
+  label: labelText,
+  value,
+  onChange,
+  type = 'text',
+  placeholder,
+  icon: Icon,
+  helper,
+  ui,
+  theme,
+}) {
+  return (
+    <div>
+      <label
+        style={{
+          ...lbl,
+          color: theme === 'dark' ? 'rgba(190,220,235,0.78)' : '#64748b',
+        }}
+      >
+        {labelText}
+      </label>
+
+      <div className="relative">
+        {Icon ? (
+          <div
+            className="absolute left-4 top-1/2 -translate-y-1/2 pointer-events-none"
+            style={{ color: ui.textMuted }}
+          >
+            <Icon size={15} />
+          </div>
+        ) : null}
+
+        <input
+          type={type}
+          value={value}
+          onChange={onChange}
+          placeholder={placeholder}
+          style={{
+            ...inp,
+            background: ui.inputBg,
+            border: ui.border,
+            color: ui.textPrimary,
+            WebkitTextFillColor: ui.textPrimary,
+            paddingLeft: Icon ? '42px' : '16px',
+          }}
+          onFocus={(e) => {
+            e.target.style.border = '1px solid rgba(59,151,151,0.70)';
+            e.target.style.boxShadow = '0 0 0 4px rgba(59,151,151,0.12)';
+            e.target.style.background = theme === 'dark' ? 'rgba(255,255,255,0.07)' : '#ffffff';
+          }}
+          onBlur={(e) => {
+            e.target.style.border = ui.border;
+            e.target.style.boxShadow = 'none';
+            e.target.style.background = ui.inputBg;
+          }}
+        />
+      </div>
+
+      {helper ? (
+        <p className="text-[11px] mt-2" style={{ color: ui.textMuted }}>
+          {helper}
+        </p>
+      ) : null}
+    </div>
+  );
+}
+
+function TextArea({
+  label: labelText,
+  value,
+  onChange,
+  placeholder,
+  rows = 4,
+  minHeight = '132px',
+  helper,
+  ui,
+  theme,
+}) {
+  return (
+    <div>
+      <label
+        style={{
+          ...lbl,
+          color: theme === 'dark' ? 'rgba(190,220,235,0.78)' : '#64748b',
+        }}
+      >
+        {labelText}
+      </label>
+      <textarea
+        value={value}
+        onChange={onChange}
+        placeholder={placeholder}
+        rows={rows}
+        style={{
+          ...inp,
+          background: ui.inputBg,
+          border: ui.border,
+          color: ui.textPrimary,
+          WebkitTextFillColor: ui.textPrimary,
+          resize: 'vertical',
+          minHeight,
+          lineHeight: 1.6,
+        }}
+        onFocus={(e) => {
+          e.target.style.border = '1px solid rgba(59,151,151,0.70)';
+          e.target.style.boxShadow = '0 0 0 4px rgba(59,151,151,0.12)';
+          e.target.style.background = theme === 'dark' ? 'rgba(255,255,255,0.07)' : '#ffffff';
+        }}
+        onBlur={(e) => {
+          e.target.style.border = ui.border;
+          e.target.style.boxShadow = 'none';
+          e.target.style.background = ui.inputBg;
+        }}
+      />
+      {helper ? (
+        <p className="text-[11px] mt-2" style={{ color: ui.textMuted }}>
+          {helper}
+        </p>
+      ) : null}
+    </div>
+  );
+}
+
+function SelectField({ label: labelText, value, onChange, children, helper, ui, theme }) {
+  return (
+    <div>
+      <label
+        style={{
+          ...lbl,
+          color: theme === 'dark' ? 'rgba(190,220,235,0.78)' : '#64748b',
+        }}
+      >
+        {labelText}
+      </label>
+      <select
+  value={value}
+  onChange={onChange}
+  style={{
+    ...inp,
+    background: ui.inputBg,
+    border: ui.border,
+    color: ui.textPrimary,
+    WebkitTextFillColor: ui.textPrimary,
+    cursor: 'pointer',
+    appearance: 'auto',
+  }}
+  onFocus={(e) => {
+    e.target.style.border = '1px solid rgba(59,151,151,0.70)';
+    e.target.style.boxShadow = '0 0 0 4px rgba(59,151,151,0.12)';
+    e.target.style.background = theme === 'dark'
+      ? 'rgba(255,255,255,0.07)'
+      : '#ffffff';
+  }}
+  onBlur={(e) => {
+    e.target.style.border = ui.border;
+    e.target.style.boxShadow = 'none';
+    e.target.style.background = ui.inputBg;
+  }}
+>
+        {children}
+      </select>
+      {helper ? (
+        <p className="text-[11px] mt-2" style={{ color: ui.textMuted }}>
+          {helper}
+        </p>
+      ) : null}
+    </div>
+  );
+}
+
+function PremiumSectionCard({ icon: Icon, eyebrow, title, subtitle, children, ui, theme }) {
+  return (
+    <div
+      className="rounded-[28px] p-5 md:p-6 h-full"
+      style={{
+        background: ui.cardBg,
+        border: ui.border,
+        boxShadow:
+          theme === 'dark'
+            ? 'inset 0 1px 0 rgba(255,255,255,0.03)'
+            : '0 8px 24px rgba(15,23,42,0.04)',
+      }}
+    >
+      <div className="flex items-start gap-4 mb-5">
+        <div
+          className="w-12 h-12 rounded-2xl flex items-center justify-center shrink-0"
+          style={{
+            background:
+              'linear-gradient(135deg, rgba(22,71,106,0.95), rgba(59,151,151,0.95))',
+            color: '#fff',
+            boxShadow: '0 14px 30px rgba(22,71,106,0.22)',
+          }}
+        >
+          <Icon size={18} />
+        </div>
+
+        <div className="min-w-0">
+          <p
+            className="text-[11px] uppercase font-extrabold tracking-[0.14em]"
+            style={{ color: theme === 'dark' ? 'rgba(159,221,228,0.86)' : '#2b7a8b' }}
+          >
+            {eyebrow}
+          </p>
+          <h4 className="text-[19px] font-extrabold mt-1" style={{ color: ui.textPrimary }}>
+            {title}
+          </h4>
+          <p className="text-xs mt-2 leading-6" style={{ color: ui.textMuted }}>
+            {subtitle}
+          </p>
+        </div>
+      </div>
+
+      {children}
+    </div>
+  );
+}
+
+function ProjectInsightCard({ form, documents, ui, theme }) {
+  const filledMainFields = [
+    form.projectName,
+    form.description,
+    form.location,
+    form.city,
+    form.state,
+    form.totalPlots,
+    form.availablePlots,
+    form.reraRegistrationNumber,
+  ].filter((v) => String(v || '').trim() !== '').length;
+
+  const totalMainFields = 8;
+
+  const hasMeaningfulReraStatus =
+    form.reraStatus && form.reraStatus !== 'NOT_SUBMITTED';
+
+  const hasMeaningfulDcStatus =
+    form.dcConversionStatus && form.dcConversionStatus !== 'NOT_APPLICABLE';
+
+  const uploadedDocsCount = (documents || []).filter((doc) => !!doc.file).length;
+
+  let score = filledMainFields;
+  if (hasMeaningfulReraStatus) score += 1;
+  if (hasMeaningfulDcStatus) score += 1;
+  if (uploadedDocsCount > 0) score += Math.min(uploadedDocsCount, 3);
+
+  const totalPossible = totalMainFields + 1 + 1 + 3;
+  const completion = Math.round((score / totalPossible) * 100);
+
+  return (
+    <div
+      className="rounded-[28px] p-5 md:p-6"
+      style={{
+        background: ui.softCardBg,
+        border: ui.border,
+      }}
+    >
+      <div className="flex items-center justify-between gap-3 mb-4">
+        <div>
+          <p
+            className="text-[11px] uppercase font-extrabold tracking-[0.14em]"
+            style={{ color: theme === 'dark' ? 'rgba(159,221,228,0.86)' : '#2b7a8b' }}
+          >
+            Form Readiness
+          </p>
+          <h4 className="text-lg font-extrabold mt-1" style={{ color: ui.textPrimary }}>
+            Project Snapshot
+          </h4>
+        </div>
+
+        <div
+          className="px-3 py-2 rounded-2xl text-xs font-extrabold"
+          style={{
+            background: theme === 'dark' ? 'rgba(59,151,151,0.14)' : '#e7f7f6',
+            color: '#2b7a78',
+            border: '1px solid rgba(59,151,151,0.22)',
+          }}
+        >
+          {completion}% ready
+        </div>
+      </div>
+
+      <div
+        className="h-2.5 rounded-full overflow-hidden mb-5"
+        style={{ background: theme === 'dark' ? 'rgba(148,163,184,0.16)' : '#e2e8f0' }}
+      >
+        <div
+          className="h-full rounded-full"
+          style={{
+            width: `${completion}%`,
+            background: 'linear-gradient(90deg, #3B9797 0%, #4bc7a6 100%)',
+            transition: 'width 0.25s ease',
+          }}
+        />
+      </div>
+
+      <div className="grid grid-cols-2 gap-3">
+        {[
+          { label: 'Total Plots', value: form.totalPlots || '—' },
+          { label: 'Available', value: form.availablePlots || '—' },
+        ].map((item) => (
+          <div
+            key={item.label}
+            className="rounded-[20px] p-4"
+            style={{
+              background: ui.cardBg,
+              border: ui.border,
+            }}
+          >
+            <p className="text-[11px] uppercase tracking-[0.12em] font-bold" style={{ color: ui.textMuted }}>
+              {item.label}
+            </p>
+            <p className="text-lg font-extrabold mt-2" style={{ color: ui.textPrimary }}>
+              {item.value}
+            </p>
+          </div>
+        ))}
+
+        <div
+          className="rounded-[20px] p-4 col-span-2"
+          style={{
+            background: ui.cardBg,
+            border: ui.border,
+          }}
+        >
+          <p className="text-[11px] uppercase tracking-[0.12em] font-bold" style={{ color: ui.textMuted }}>
+            Draft Name
+          </p>
+          <p className="text-sm font-bold mt-2 break-words" style={{ color: ui.textPrimary }}>
+            {form.projectName || 'Project name not added yet'}
+          </p>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+const PROJECT_AMENITIES = [
+  { value: 'ROAD', label: 'Road' },
+  { value: 'DRAINAGE', label: 'Drainage' },
+  { value: 'WATER_SUPPLY', label: 'Water Supply' },
+  { value: 'ELECTRICITY', label: 'Electricity' },
+  { value: 'STREET_LIGHTS', label: 'Street Lights' },
+  { value: 'PARK', label: 'Park' },
+  { value: 'SECURITY', label: 'Security' },
+  { value: 'CLUBHOUSE', label: 'Clubhouse' },
+];
+
+const PROJECT_DOCUMENT_TYPES = [
+  {
+    value: 'RERA_CERTIFICATE',
+    label: 'RERA Certificate',
+    required: true,
+    note: 'Required for project approval.',
+  },
+  {
+    value: 'LAND_OWNERSHIP_PROOF',
+    label: 'Land Ownership Proof',
+    required: true,
+    note: 'Required to verify ownership of the project land.',
+  },
+  {
+    value: 'DC_CONVERSION_DOCUMENT',
+    label: 'DC Conversion Document',
+    required: false,
+    note: 'Upload only if the land is DC converted.',
+  },
+  {
+    value: 'OTHER_LEGAL_DOCUMENT',
+    label: 'Other Legal Documents',
+    required: false,
+    note: 'Optional: Upload any additional supporting documents if available.',
+  },
+];
+
+function AmenitiesPicker({ amenities, setAmenities, ui, theme }) {
+  const toggleAmenity = (value) => {
+    setAmenities((prev) =>
+      prev.includes(value)
+        ? prev.filter((item) => item !== value)
+        : [...prev, value]
+    );
+  };
+
+  return (
+    <div>
+      <div className="flex flex-wrap gap-3">
+        {PROJECT_AMENITIES.map((item) => {
+          const active = amenities.includes(item.value);
+
+          return (
+            <button
+              key={item.value}
+              type="button"
+              onClick={() => toggleAmenity(item.value)}
+              className="px-4 py-2.5 rounded-2xl text-sm font-bold transition-all"
+              style={{
+                background: active
+                  ? 'linear-gradient(135deg, #174b72 0%, #267c8e 55%, #3B9797 100%)'
+                  : ui.cardBg,
+                color: active ? '#ffffff' : ui.textPrimary,
+                border: active ? '1px solid rgba(59,151,151,0.34)' : ui.border,
+                boxShadow: active
+                  ? '0 10px 24px rgba(22,71,106,0.18)'
+                  : 'none',
+                cursor: 'pointer',
+              }}
+            >
+              {item.label}
+            </button>
+          );
+        })}
+      </div>
+
+      <div className="mt-4">
+        <p
+          className="text-[11px] uppercase tracking-[0.12em] font-bold"
+          style={{ color: ui.textMuted }}
+        >
+          Selected Amenities
+        </p>
+        <div className="flex flex-wrap gap-2 mt-3">
+          {amenities.length > 0 ? (
+            amenities.map((item) => (
+              <span
+                key={item}
+                className="px-3 py-2 rounded-xl text-xs font-bold"
+                style={{
+                  background:
+                    theme === 'dark' ? 'rgba(59,151,151,0.12)' : '#e8f7f5',
+                  color: ui.textPrimary,
+                  border: '1px solid rgba(59,151,151,0.22)',
+                }}
+              >
+                {String(item).replaceAll('_', ' ')}
+              </span>
+            ))
+          ) : (
+            <span className="text-sm" style={{ color: ui.textMuted }}>
+              No amenities selected yet.
+            </span>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function ProjectDocumentsUploader({ documents, setDocuments, ui, theme }) {
+  const handleFileChange = (index, file) => {
+    setDocuments((prev) =>
+      prev.map((item, i) => (i === index ? { ...item, file } : item))
+    );
+  };
+
+  return (
+    <div className="space-y-3">
+      {documents.map((doc, index) => (
+        <div
+          key={doc.type}
+          className="rounded-[20px] p-4"
+          style={{
+            background: ui.softCardBg,
+            border: ui.border,
+          }}
+        >
+          <div className="grid grid-cols-1 lg:grid-cols-[0.9fr_1.1fr] gap-4 items-center">
+            <div>
+              <p className="text-sm font-bold" style={{ color: ui.textPrimary }}>
+                {doc.label}
+              </p>
+              <p className="text-xs mt-1 leading-5" style={{ color: ui.textMuted }}>
+                Upload the supporting file for this project document type.
+              </p>
+            </div>
+
+            <label
+              className="rounded-[16px] px-4 py-3 flex items-center justify-between gap-3"
+              style={{
+                background: ui.cardBg,
+                border: ui.border,
+                cursor: 'pointer',
+              }}
+            >
+              <div className="min-w-0">
+                <p
+                  className="text-sm font-semibold truncate"
+                  style={{ color: ui.textPrimary }}
+                >
+                  {doc.file ? doc.file.name : 'Choose file'}
+                </p>
+                <p className="text-[11px] mt-1" style={{ color: ui.textMuted }}>
+  {doc.note}
+</p>
+              </div>
+
+              <div
+                className="px-3 py-2 rounded-xl text-xs font-extrabold shrink-0"
+                style={{
+                  background:
+                    theme === 'dark' ? 'rgba(59,151,151,0.12)' : '#e8f7f5',
+                  color: '#2b7a78',
+                  border: '1px solid rgba(59,151,151,0.22)',
+                }}
+              >
+                Browse
+              </div>
+
+              <input
+                type="file"
+                className="hidden"
+                onChange={(e) => handleFileChange(index, e.target.files?.[0] || null)}
+              />
+            </label>
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function CreateProjectModal({ onClose, onCreated, ui, theme }) {
+  const [form, setForm] = useState({
+    projectName: '',
+    description: '',
+    location: '',
+    city: '',
+    state: '',
+    totalPlots: '',
+    availablePlots: '',
+    reraRegistrationNumber: '',
+    reraStatus: 'NOT_SUBMITTED',
+    dcConversionStatus: 'NOT_APPLICABLE',
+    legalNotes: '',
+  });
+
+  const [amenities, setAmenities] = useState([]);
+  const [documents, setDocuments] = useState(
+    PROJECT_DOCUMENT_TYPES.map((item) => ({
+      type: item.type,
+      label: item.label,
+      file: null,
+    }))
+  );
+
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState('');
+  const [successMsg, setSuccessMsg] = useState('');
+  const [projectImage, setProjectImage] = useState(null);
+
+  const set = (k, v) => setForm((f) => ({ ...f, [k]: v }));
+
+  const validate = () => {
+    if (!form.projectName.trim()) return 'Project name is required.';
+    if (!form.description.trim()) return 'Description is required.';
+    if (!form.location.trim()) return 'Location is required.';
+    if (!form.city.trim()) return 'City is required.';
+    if (!form.state.trim()) return 'State is required.';
+    if (!form.totalPlots || +form.totalPlots < 1) {
+      return 'Total plots must be at least 1.';
+    }
+    if (form.availablePlots === '' || +form.availablePlots < 0) {
+      return 'Available plots cannot be negative.';
+    }
+    if (+form.availablePlots > +form.totalPlots) {
+      return 'Available plots cannot exceed total plots.';
+    }
+    return '';
+  };
+
+  const handleSubmit = async () => {
+    const err = validate();
+    if (err) {
+      setError(err);
+      return;
+    }
+
+    setSaving(true);
+    setError('');
+    setSuccessMsg('');
+
+    try {
+      const projectRes = await createProject({
+        projectName: form.projectName,
+        description: form.description,
+        location: form.location,
+        city: form.city,
+        state: form.state,
+        totalPlots: +form.totalPlots,
+        availablePlots: +form.availablePlots,
+      });
+
+      const createdProject = projectRes?.data?.project || projectRes?.data;
+      const backendMessage =
+        projectRes?.data?.message || 'Project created successfully.';
+      const kycStatus = projectRes?.data?.kycStatus || null;
+
+      if (!createdProject?.id) {
+        throw new Error('Project created but project ID was not returned.');
+      }
+
+      await saveProjectLegalDetails(createdProject.id, {
+        reraRegistrationNumber: form.reraRegistrationNumber || null,
+        reraStatus: form.reraStatus,
+        dcConversionStatus: form.dcConversionStatus,
+        legalNotes: form.legalNotes || null,
+      });
+
+      if (amenities.length > 0) {
+        await addAmenitiesBulk(
+          createdProject.id,
+          amenities.map((item) => ({
+            amenityName: item,
+          }))
+        );
+      }
+
+      for (const doc of documents) {
+        if (doc.file) {
+          await uploadProjectDocument(createdProject.id, doc.type, doc.file);
+        }
+      }
+
+      setSuccessMsg(backendMessage);
+      onCreated(createdProject, backendMessage, kycStatus);
+
+      setTimeout(() => {
+        onClose();
+      }, 900);
+    } catch (e) {
+      setError(
+        e?.response?.data?.message ||
+          e?.response?.data?.error ||
+          e?.message ||
+          'Failed to create project. Please try again.'
+      );
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const stats = [
+    {
+      label: 'Project Status',
+      value: 'Draft Setup',
+      icon: FiBriefcase,
+    },
+    {
+      label: 'Compliance Track',
+      value:
+        form.reraStatus === 'APPROVED'
+          ? 'Strong'
+          : form.reraStatus === 'PENDING'
+          ? 'In Progress'
+          : 'Pending',
+      icon: FiShield,
+    },
+    {
+      label: 'Inventory Scope',
+      value: form.totalPlots ? `${form.totalPlots} plots` : 'Not set',
+      icon: FiLayers,
+    },
+    {
+      label: 'Amenities',
+      value: amenities.length > 0 ? `${amenities.length} selected` : 'Not set',
+      icon: FiGrid,
+    },
+  ];
+
+  return (
+    <Modal
+      title="Create New Project"
+      subtitle="Enter the project details, provide legal information, select amenities, and upload required documents for approval."
+      onClose={onClose}
+      ui={ui}
+      theme={theme}
+    >
+      <div className="space-y-6">
+        <div
+          className="rounded-[28px] p-4 md:p-5"
+          style={{
+            background: ui.cardBg,
+            border: ui.border,
+          }}
+        >
+          <div className="grid grid-cols-1 lg:grid-cols-[1.1fr_0.9fr] gap-4 items-start">
+            <div>
+              <p
+                className="text-[11px] uppercase font-extrabold tracking-[0.14em]"
+                style={{
+                  color:
+                    theme === 'dark'
+                      ? 'rgba(159,221,228,0.86)'
+                      : '#2b7a8b',
+                }}
+              >
+                Creation Guide
+              </p>
+              <h4
+                className="font-extrabold text-lg mt-1"
+                style={{ color: ui.textPrimary }}
+              >
+                Project details first. Then legal, amenities, and documents.
+              </h4>
+              <p
+                className="text-sm leading-6 mt-2"
+                style={{ color: ui.textSecondary }}
+              >
+                Complete each section carefully. Your project will be reviewed by admin before it is published.
+              </p>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              {stats.map(({ label, value, icon: Icon }) => (
+                <div
+                  key={label}
+                  className="rounded-[20px] p-4"
+                  style={{
+                    background: ui.softCardBg,
+                    border: ui.border,
+                  }}
+                >
+                  <div className="flex items-center gap-2">
+                    <Icon size={14} style={{ color: '#3B9797' }} />
+                    <p
+                      className="text-[11px] uppercase tracking-[0.12em] font-bold"
+                      style={{ color: ui.textMuted }}
+                    >
+                      {label}
+                    </p>
+                  </div>
+                  <p
+                    className="text-sm font-extrabold mt-3"
+                    style={{ color: ui.textPrimary }}
+                  >
+                    {value}
+                  </p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        {error ? (
+          <div
+            className="rounded-[22px] px-4 py-3 flex items-start gap-3"
+            style={{
+              background:
+                theme === 'dark' ? 'rgba(214,122,142,0.10)' : '#fff1f3',
+              border: '1px solid rgba(214,122,142,0.22)',
+              color: '#b42318',
+            }}
+          >
+            <FiAlertCircle className="mt-0.5 shrink-0" />
+            <span className="text-sm font-semibold">{error}</span>
+          </div>
+        ) : null}
+
+        {successMsg ? (
+          <div
+            className="rounded-[22px] px-4 py-3 flex items-start gap-3"
+            style={{
+              background:
+                theme === 'dark' ? 'rgba(71,197,154,0.10)' : '#ecfdf3',
+              border: '1px solid rgba(71,197,154,0.22)',
+              color: '#067647',
+            }}
+          >
+            <FiCheckCircle className="mt-0.5 shrink-0" />
+            <span className="text-sm font-semibold">{successMsg}</span>
+          </div>
+        ) : null}
+
+        <div className="grid grid-cols-1 xl:grid-cols-[1.08fr_0.92fr] gap-6 items-start">
+          <div className="space-y-6">
+            <PremiumSectionCard
+              icon={FiHome}
+              eyebrow="Core Setup"
+              title="Project Basics"
+              subtitle="Enter the main project information that defines the builder listing and internal approval visibility."
+              ui={ui}
+              theme={theme}
+            >
+              <div className="space-y-4">
+                <Field
+                  label="Project Name *"
+                  value={form.projectName}
+                  onChange={(e) => set('projectName', e.target.value)}
+                  placeholder="e.g. Green Valley Phase 1"
+                  icon={FiBriefcase}
+                  helper="This name will be visible to buyers and investors on the platform."
+                  ui={ui}
+                  theme={theme}
+                />
+
+                <TextArea
+                  label="Description *"
+                  value={form.description}
+                  onChange={(e) => set('description', e.target.value)}
+                  placeholder="Brief description of the project, positioning, location advantage, and phase details..."
+                  rows={5}
+                  minHeight="150px"
+                  helper="Provide a clear description of the project to help buyers understand the offering."
+                  ui={ui}
+                  theme={theme}
+                />
+
+                <Field
+                  label="Location *"
+                  value={form.location}
+                  onChange={(e) => set('location', e.target.value)}
+                  placeholder="e.g. Mysuru - Bangalore Highway"
+                  icon={FiMapPin}
+                  ui={ui}
+                  theme={theme}
+                />
+                <div>
+  <label
+    style={{
+      ...lbl,
+      color: theme === 'dark' ? 'rgba(190,220,235,0.78)' : '#64748b',
+    }}
+  >
+    Project Image (Optional)
+  </label>
+
+  <label
+    className="rounded-[18px] px-4 py-4 flex items-center justify-between gap-3"
+    style={{
+      background: ui.inputBg,
+      border: ui.border,
+      cursor: 'pointer',
+    }}
+  >
+    <div className="min-w-0">
+      <p className="text-sm font-semibold truncate" style={{ color: ui.textPrimary }}>
+        {projectImage ? projectImage.name : 'Choose project image'}
+      </p>
+      <p className="text-[11px] mt-1" style={{ color: ui.textMuted }}>
+        Optional. Add a project cover image for better presentation.
+      </p>
+    </div>
+
+    <div
+      className="px-3 py-2 rounded-xl text-xs font-extrabold shrink-0"
+      style={{
+        background: theme === 'dark' ? 'rgba(59,151,151,0.12)' : '#e8f7f5',
+        color: '#2b7a78',
+        border: '1px solid rgba(59,151,151,0.22)',
+      }}
+    >
+      Browse
+    </div>
+
+    <input
+      type="file"
+      accept="image/*"
+      className="hidden"
+      onChange={(e) => setProjectImage(e.target.files?.[0] || null)}
+    />
+  </label>
+</div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <Field
+                    label="City *"
+                    value={form.city}
+                    onChange={(e) => set('city', e.target.value)}
+                    placeholder="Mysuru"
+                    icon={FiMapPin}
+                    ui={ui}
+                    theme={theme}
+                  />
+                  <Field
+                    label="State *"
+                    value={form.state}
+                    onChange={(e) => set('state', e.target.value)}
+                    placeholder="Karnataka"
+                    icon={FiMapPin}
+                    ui={ui}
+                    theme={theme}
+                  />
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <Field
+                    label="Total Plots *"
+                    type="number"
+                    value={form.totalPlots}
+                    onChange={(e) => set('totalPlots', e.target.value)}
+                    placeholder="100"
+                    icon={FiLayers}
+                    helper="This defines the overall size of your plotted inventory."
+                    ui={ui}
+                    theme={theme}
+                  />
+                  <Field
+                    label="Available Plots *"
+                    type="number"
+                    value={form.availablePlots}
+                    onChange={(e) => set('availablePlots', e.target.value)}
+                    placeholder="100"
+                    icon={FiHash}
+                    helper="Must be equal to or lower than total plots."
+                    ui={ui}
+                    theme={theme}
+                  />
+                </div>
+              </div>
+              {projectImage ? (
+  <div
+    className="rounded-[20px] p-3 mt-3"
+    style={{
+      background: ui.cardBg,
+      border: ui.border,
+    }}
+  >
+    <p className="text-[11px] uppercase tracking-[0.12em] font-bold mb-3" style={{ color: ui.textMuted }}>
+      Image Preview
+    </p>
+    <img
+      src={URL.createObjectURL(projectImage)}
+      alt="Project preview"
+      className="w-full h-[180px] object-cover rounded-[16px]"
+    />
+  </div>
+) : null}
+            </PremiumSectionCard>
+
+            <PremiumSectionCard
+              icon={FiGrid}
+              eyebrow="Project Setup"
+              title="Amenities"
+              subtitle="Select the facilities available in this project. These will be shown to buyers."
+              ui={ui}
+              theme={theme}
+            >
+              <AmenitiesPicker
+                amenities={amenities}
+                setAmenities={setAmenities}
+                ui={ui}
+                theme={theme}
+              />
+            </PremiumSectionCard>
+          </div>
+
+          <div className="space-y-6">
+            <ProjectInsightCard form={form} documents={documents} ui={ui} theme={theme} />
+
+            <PremiumSectionCard
+              icon={FiShield}
+              eyebrow="Compliance Layer"
+              title="Legal & Compliance"
+              subtitle="Provide the available legal details for this project.These details will be reviewed during admin approval "
+              ui={ui}
+              theme={theme}
+            >
+              <div className="space-y-4">
+                <Field
+                  label="RERA Registration Number (e.g. PRM/KA/RERA/1251/310/PR/210324/005678)"
+                  value={form.reraRegistrationNumber}
+                  onChange={(e) => set('reraRegistrationNumber', e.target.value)}
+                  placeholder="Enter valid RERA registration number"
+                  icon={FiFileText}
+                  ui={ui}
+                  theme={theme}
+                />
+
+                <SelectField
+  label="RERA Status"
+  value={form.reraStatus}
+  onChange={(e) => set('reraStatus', e.target.value)}
+  helper="Select the current RERA approval stage for this project."
+  ui={ui}
+  theme={theme}
+>
+  <option value="NOT_SUBMITTED" style={optStyle}>
+    Not Submitted
+  </option>
+  <option value="PENDING" style={optStyle}>
+    Pending
+  </option>
+  <option value="APPROVED" style={optStyle}>
+    Approved
+  </option>
+  <option value="REJECTED" style={optStyle}>
+    Rejected
+  </option>
+</SelectField>
+
+                <SelectField
+  label="DC Conversion Status"
+  value={form.dcConversionStatus}
+  onChange={(e) => set('dcConversionStatus', e.target.value)}
+  helper="If the land is DC converted, select the correct status here."
+  ui={ui}
+  theme={theme}
+>
+  <option value="NOT_APPLICABLE" style={optStyle}>
+    Not Applicable
+  </option>
+  <option value="PENDING" style={optStyle}>
+    Pending
+  </option>
+  <option value="CONVERTED" style={optStyle}>
+    Converted
+  </option>
+  <option value="REJECTED" style={optStyle}>
+    Rejected
+  </option>
+</SelectField>
+
+                <TextArea
+                  label="Legal Notes"
+                  value={form.legalNotes}
+                  onChange={(e) => set('legalNotes', e.target.value)}
+                  placeholder="Add remarks, document references, review context, or compliance notes..."
+                  rows={6}
+                  minHeight="190px"
+                  helper="Add any project-specific legal remarks, verification notes, or approval-related details."
+                  ui={ui}
+                  theme={theme}
+                />
+              </div>
+            </PremiumSectionCard>
+
+            <PremiumSectionCard
+              icon={FiFileText}
+              eyebrow="Project Documents"
+              title="Upload Documents"
+              subtitle="Upload required documents for verification. Mandatory documents must be provided before approval."
+              ui={ui}
+              theme={theme}
+            >
+              <ProjectDocumentsUploader
+                documents={documents}
+                setDocuments={setDocuments}
+                ui={ui}
+                theme={theme}
+              />
+            </PremiumSectionCard>
+          </div>
+        </div>
+
+        <div className="flex flex-col-reverse sm:flex-row sm:items-center sm:justify-between gap-3 pt-1">
+          <button
+            type="button"
+            onClick={onClose}
+            style={{
+              ...btnSecondary,
+              background: ui.cardBg,
+              color: ui.textPrimary,
+              border: ui.border,
+            }}
+          >
+            Cancel
+          </button>
+
+          <button
+            type="button"
+            onClick={handleSubmit}
+            disabled={saving}
+            style={btnPrimary}
+          >
+            {saving ? (
+              <>
+                <FiClock />
+                Creating Project...
+              </>
+            ) : (
+              <>
+                <FiCheck />
+                Create Project
+              </>
+            )}
+          </button>
+        </div>
+      </div>
+    </Modal>
+  );
+}
+
+function PremiumPageHero({ onOpenCreate, totalProjects, approvedCount, pendingCount, ui, theme }) {
+  const stats = [
+    { label: 'Total Projects', value: totalProjects, icon: FiFolder },
+    { label: 'Approved', value: approvedCount, icon: FiCheckCircle },
+    { label: 'Pending Review', value: pendingCount, icon: FiClock },
+  ];
+
+  return (
+    <div
+      className="rounded-[30px] p-5 md:p-7 mb-6"
+      style={{
+        background: ui.pageHeroBg,
+        border: ui.border,
+        boxShadow:
+          theme === 'dark'
+            ? '0 24px 60px rgba(2, 6, 23, 0.18)'
+            : '0 18px 45px rgba(15,23,42,0.08)',
+      }}
+    >
+      <div className="grid grid-cols-1 xl:grid-cols-[1.1fr_0.9fr] gap-6 items-start">
+        <div>
+          <div className="flex items-center gap-3 flex-wrap">
+            <div
+              className="w-12 h-12 rounded-2xl flex items-center justify-center"
+              style={{
+                background:
+                  'linear-gradient(135deg, rgba(22,71,106,0.95), rgba(59,151,151,0.95))',
+                color: '#fff',
+                boxShadow: '0 16px 35px rgba(22,71,106,0.28)',
+              }}
+            >
+              <FiGrid size={20} />
+            </div>
+
+            <div>
+              <p
+                className="text-[11px] uppercase font-extrabold tracking-[0.16em]"
+                style={{ color: theme === 'dark' ? 'rgba(159,221,228,0.92)' : '#2b7a8b' }}
+              >
+                Builder Portfolio
+              </p>
+              <h2 className="text-[24px] md:text-[30px] font-extrabold leading-tight mt-1" style={{ color: ui.textPrimary }}>
+                Manage and scale your projects
+              </h2>
+            </div>
+          </div>
+
+          <p
+            className="text-sm md:text-[15px] leading-7 mt-4 max-w-3xl"
+            style={{ color: ui.textSecondary }}
+          >
+            Create new plotted projects, track approval progress, monitor availability,
+            and keep legal details aligned with your admin review workflow.
+          </p>
+
+          <div className="flex flex-wrap gap-3 mt-5">
+            <button type="button" onClick={onOpenCreate} style={btnPrimary}>
+              <FiPlus size={16} />
+              Create New Project
+            </button>
+
+            <div
+              className="px-4 py-3 rounded-[16px] text-sm font-semibold"
+              style={{
+                background: ui.chipBg,
+                border: ui.border,
+                color: ui.chipText,
+              }}
+            >
+              Premium builder workspace
+            </div>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+          {stats.map(({ label, value, icon: Icon }) => (
+            <div
+              key={label}
+              className="rounded-[22px] p-4 md:p-5"
+              style={{
+                background: ui.statBg,
+                border: ui.border,
+              }}
+            >
+              <div className="flex items-center gap-2">
+                <Icon size={15} style={{ color: '#3B9797' }} />
+                <p className="text-[11px] uppercase tracking-[0.12em] font-bold" style={{ color: ui.textMuted }}>
+                  {label}
+                </p>
+              </div>
+              <p className="text-[24px] font-extrabold mt-4" style={{ color: ui.textPrimary }}>
+                {value}
+              </p>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function PremiumFilterBar({ search, setSearch, filter, setFilter, ui, theme }) {
+  const filters = ['ALL', 'APPROVED', 'PENDING', 'REJECTED'];
+
+  return (
+    <div
+      className="rounded-[26px] p-4 md:p-5 mb-6"
+      style={{
+        background: ui.cardBg,
+        border: ui.border,
+      }}
+    >
+      <div className="flex flex-col xl:flex-row xl:items-center gap-4 xl:justify-between">
+        <div className="w-full xl:max-w-md">
+          <label
+            style={{
+              ...lbl,
+              color: theme === 'dark' ? 'rgba(190,220,235,0.78)' : '#64748b',
+            }}
+          >
+            Search Projects
+          </label>
+          <div className="relative">
+            <div
+              className="absolute left-4 top-1/2 -translate-y-1/2 pointer-events-none"
+              style={{ color: ui.textMuted }}
+            >
+              <FiFolder size={15} />
+            </div>
+
+            <input
+              type="text"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="Search by project name, city, state, or location..."
+              style={{
+                ...inp,
+                background: ui.inputBg,
+                border: ui.border,
+                color: ui.textPrimary,
+                WebkitTextFillColor: ui.textPrimary,
+                paddingLeft: '42px',
+              }}
+              onFocus={(e) => {
+                e.target.style.border = '1px solid rgba(59,151,151,0.70)';
+                e.target.style.boxShadow = '0 0 0 4px rgba(59,151,151,0.12)';
+              }}
+              onBlur={(e) => {
+                e.target.style.border = ui.border;
+                e.target.style.boxShadow = 'none';
+              }}
+            />
+          </div>
+        </div>
+
+        <div className="flex flex-wrap gap-2">
+          {filters.map((item) => {
+            const active = filter === item;
+
+            return (
+              <button
+                key={item}
+                type="button"
+                onClick={() => setFilter(item)}
+                className="px-4 py-2.5 rounded-[16px] text-xs md:text-sm font-extrabold transition-all"
+                style={{
+                  background: active
+                    ? 'linear-gradient(135deg, #174b72 0%, #267c8e 55%, #3B9797 100%)'
+                    : ui.chipBg,
+                  color: active ? '#fff' : ui.chipText,
+                  border: active ? '1px solid rgba(59,151,151,0.22)' : ui.border,
+                  boxShadow: active ? '0 12px 28px rgba(22,71,106,0.18)' : 'none',
+                }}
+              >
+                {item === 'ALL' ? 'All Projects' : item}
+              </button>
+            );
+          })}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function ProjectCard({ project, onOpenLegal, ui, theme }) {
+  const statusMeta = getStatusMeta(project?.approvalStatus || project?.status);
+  const StatusIcon = statusMeta.icon;
+  const progress = getProgress(project);
+
+  return (
+    <motion.div
+      layout
+      initial={{ opacity: 0, y: 16 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.22 }}
+      className="rounded-[28px] overflow-hidden h-full"
+      style={{
+        background: ui.softCardBg,
+        border: ui.border,
+        boxShadow:
+          theme === 'dark'
+            ? '0 20px 45px rgba(2, 6, 23, 0.10)'
+            : '0 12px 30px rgba(15,23,42,0.06)',
+      }}
+    >
+      <div className="p-5 md:p-6 border-b" style={{ borderColor: theme === 'dark' ? 'rgba(148,163,184,0.10)' : 'rgba(15,23,42,0.06)' }}>
+        <div className="flex items-start justify-between gap-3">
+          <div className="min-w-0">
+            <div className="flex items-center gap-2 flex-wrap">
+              <h3 className="text-lg md:text-[20px] font-extrabold break-words" style={{ color: ui.textPrimary }}>
+                {project?.projectName || 'Untitled Project'}
+              </h3>
+
+              <span className={statusMeta.className}>
+                <StatusIcon size={13} />
+                {statusMeta.label}
+              </span>
+            </div>
+
+            <p className="text-sm mt-2 leading-6" style={{ color: ui.textSecondary }}>
+              {project?.description || 'No description added yet.'}
+            </p>
+          </div>
+
+          <div
+            className="w-12 h-12 rounded-2xl flex items-center justify-center shrink-0"
+            style={{
+              background: theme === 'dark' ? 'rgba(59,151,151,0.10)' : '#eef8f8',
+              color: '#2b7a78',
+              border: '1px solid rgba(59,151,151,0.16)',
+            }}
+          >
+            <FiFolder size={18} />
+          </div>
+        </div>
+      </div>
+
+      <div className="p-5 md:p-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-5">
+          <div className="rounded-[20px] p-4" style={{ background: ui.cardBg, border: ui.border }}>
+            <div className="flex items-center gap-2 mb-2">
+              <FiMapPin size={14} style={{ color: '#3B9797' }} />
+              <p className="text-[11px] uppercase tracking-[0.12em] font-bold" style={{ color: ui.textMuted }}>
+                Location
+              </p>
+            </div>
+            <p className="text-sm font-bold break-words" style={{ color: ui.textPrimary }}>
+              {project?.location || '—'}
+            </p>
+            <p className="text-xs mt-2" style={{ color: ui.textSecondary }}>
+              {[project?.city, project?.state].filter(Boolean).join(', ') || '—'}
+            </p>
+          </div>
+
+          <div className="rounded-[20px] p-4" style={{ background: ui.cardBg, border: ui.border }}>
+            <div className="flex items-center gap-2 mb-2">
+              <FiLayers size={14} style={{ color: '#3B9797' }} />
+              <p className="text-[11px] uppercase tracking-[0.12em] font-bold" style={{ color: ui.textMuted }}>
+                Inventory
+              </p>
+            </div>
+            <p className="text-sm font-bold" style={{ color: ui.textPrimary }}>
+              {project?.availablePlots ?? 0} available / {project?.totalPlots ?? 0} total
+            </p>
+            <p className="text-xs mt-2" style={{ color: ui.textSecondary }}>
+              Sold progress: {Math.round(progress)}%
+            </p>
+          </div>
+        </div>
+
+        <div className="mb-5">
+          <div className="flex items-center justify-between gap-3 mb-2">
+            <p className="text-[11px] uppercase tracking-[0.12em] font-bold" style={{ color: ui.textMuted }}>
+              Sales Progress
+            </p>
+            <span className="text-xs font-extrabold" style={{ color: '#3B9797' }}>
+              {Math.round(progress)}%
+            </span>
+          </div>
+
+          <div className="h-2.5 rounded-full overflow-hidden" style={{ background: theme === 'dark' ? 'rgba(148,163,184,0.16)' : '#e2e8f0' }}>
+            <div
+              className="h-full rounded-full transition-all duration-300"
+              style={{
+                width: `${progress}%`,
+                background: 'linear-gradient(90deg, #174b72 0%, #3B9797 100%)',
+              }}
+            />
+          </div>
+        </div>
+
+        <div className="grid grid-cols-2 gap-3 mb-5">
+          <div className="rounded-[18px] p-3" style={{ background: ui.cardBg, border: ui.border }}>
+            <p className="text-[11px] uppercase tracking-[0.12em] font-bold" style={{ color: ui.textMuted }}>
+              RERA
+            </p>
+            <p className="text-sm font-bold mt-2" style={{ color: ui.textPrimary }}>
+              {project?.reraStatus || 'Not Added'}
+            </p>
+          </div>
+
+          <div className="rounded-[18px] p-3" style={{ background: ui.cardBg, border: ui.border }}>
+            <p className="text-[11px] uppercase tracking-[0.12em] font-bold" style={{ color: ui.textMuted }}>
+              DC Status
+            </p>
+            <p className="text-sm font-bold mt-2" style={{ color: ui.textPrimary }}>
+              {project?.dcConversionStatus || 'Not Added'}
+            </p>
+          </div>
+        </div>
+
+        <div className="flex flex-wrap gap-3">
+          <button type="button" style={btnPrimary} onClick={() => onOpenLegal(project)}>
+            <FiArrowRight size={15} />
+            View / Update Legal
+          </button>
+
+          <button
+            type="button"
+            onClick={() => onOpenLegal(project)}
+            style={{
+              ...btnSecondary,
+              background: ui.cardBg,
+              color: ui.textPrimary,
+              border: ui.border,
+            }}
+          >
+            Open Project
+          </button>
+        </div>
+      </div>
+    </motion.div>
+  );
+}
+
+function EmptyState({ onOpenCreate, ui, theme }) {
+  return (
+    <div
+      className="rounded-[30px] p-8 md:p-12 text-center"
+      style={{
+        background: ui.softCardBg,
+        border: ui.border,
+      }}
+    >
+      <div className="flex flex-col items-center max-w-2xl mx-auto">
+        <div
+          className="w-20 h-20 rounded-[28px] flex items-center justify-center mb-5"
+          style={{
+            background:
+              'linear-gradient(135deg, rgba(22,71,106,0.95), rgba(59,151,151,0.95))',
+            color: '#fff',
+            boxShadow: '0 18px 40px rgba(22,71,106,0.24)',
+          }}
+        >
+          <FiFolder size={28} />
+        </div>
+
+        <p
+          className="text-[11px] uppercase font-extrabold tracking-[0.16em]"
+          style={{ color: theme === 'dark' ? 'rgba(159,221,228,0.9)' : '#2b7a8b' }}
+        >
+          Builder Workspace
+        </p>
+
+        <h3 className="text-2xl md:text-[28px] font-extrabold mt-2" style={{ color: ui.textPrimary }}>
+          No projects created yet
+        </h3>
+
+        <p className="text-sm md:text-[15px] leading-7 mt-4" style={{ color: ui.textSecondary }}>
+          Start by creating your first project. Once created, you can attach legal
+          details, track review progress, and manage plot inventory from one place.
+        </p>
+
+        <div className="mt-6">
+          <button type="button" onClick={onOpenCreate} style={btnPrimary}>
+            <FiPlus size={16} />
+            Create First Project
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function BuilderProjects() {
+  const { theme } = useTheme();
+  const ui = getProjectThemeStyles(theme);
+  const [searchParams] = useSearchParams();
+  const navigate = useNavigate();
+
+  const [projects, setProjects] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [search, setSearch] = useState('');
+  const [filter, setFilter] = useState('ALL');
+  const [showCreateModal, setShowCreateModal] = useState(false);
+  const [showLegalModal, setShowLegalModal] = useState(false);
+  const [selectedProject, setSelectedProject] = useState(null);
+
+  useEffect(() => {
+    loadProjects();
+  }, []);
+
+  useEffect(() => {
+    if (searchParams.get('action') === 'create') {
+      setShowCreateModal(true);
+    }
+  }, [searchParams]);
+
+  const loadProjects = async () => {
+    try {
+      setLoading(true);
+      const res = await getMyProjects();
+      const projectData = Array.isArray(res?.data)
+        ? res.data
+        : res?.data?.projects || [];
+      setProjects(projectData);
+    } catch (error) {
+      console.error('Failed to load projects:', error);
+      setProjects([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const filteredProjects = useMemo(() => {
+    return projects.filter((project) => {
+      const status = (project?.approvalStatus || project?.status || '').toUpperCase();
+
+      const matchesFilter =
+        filter === 'ALL'
+          ? true
+          : filter === 'PENDING'
+          ? status === 'PENDING' || status === 'UNDER_REVIEW'
+          : status === filter;
+
+      const q = search.trim().toLowerCase();
+      const matchesSearch =
+        !q ||
+        (project?.projectName || '').toLowerCase().includes(q) ||
+        (project?.location || '').toLowerCase().includes(q) ||
+        (project?.city || '').toLowerCase().includes(q) ||
+        (project?.state || '').toLowerCase().includes(q);
+
+      return matchesFilter && matchesSearch;
+    });
+  }, [projects, search, filter]);
+
+  const approvedCount = projects.filter(
+    (p) => (p?.approvalStatus || p?.status || '').toUpperCase() === 'APPROVED'
+  ).length;
+
+  const pendingCount = projects.filter((p) => {
+    const s = (p?.approvalStatus || p?.status || '').toUpperCase();
+    return s === 'PENDING' || s === 'UNDER_REVIEW';
+  }).length;
+
+  return (
+    <div
+      className="min-h-screen"
+      style={{
+        background:
+          theme === 'dark'
+            ? 'linear-gradient(180deg, #081120 0%, #0a1730 100%)'
+            : 'linear-gradient(180deg, #f4f8fc 0%, #eef4f9 100%)',
+        color: ui.textPrimary,
+      }}
+    >
+      <BuilderSidebar />
+
+      <main className="lg:ml-[280px] px-4 md:px-6 xl:px-8 py-6 md:py-8">
+        <PremiumPageHero
+          onOpenCreate={() => setShowCreateModal(true)}
+          totalProjects={projects.length}
+          approvedCount={approvedCount}
+          pendingCount={pendingCount}
+          ui={ui}
+          theme={theme}
+        />
+
+        <PremiumFilterBar
+          search={search}
+          setSearch={setSearch}
+          filter={filter}
+          setFilter={setFilter}
+          ui={ui}
+          theme={theme}
+        />
+
+        {loading ? (
+          <div
+            className="rounded-[24px] p-8"
+            style={{
+              background: ui.cardBg,
+              border: ui.border,
+              color: ui.textSecondary,
+            }}
+          >
+            Loading projects...
+          </div>
+        ) : filteredProjects.length === 0 ? (
+          <EmptyState onOpenCreate={() => setShowCreateModal(true)} ui={ui} theme={theme} />
+        ) : (
+          <div className="grid grid-cols-1 xl:grid-cols-2 2xl:grid-cols-3 gap-5">
+            {filteredProjects.map((project) => (
+              <ProjectCard
+                key={project.id}
+                project={project}
+                onOpenLegal={(selectedProject) => {
+                  setSelectedProject(selectedProject);
+                  setShowLegalModal(true);
+                }}
+                ui={ui}
+                theme={theme}
+              />
+            ))}
+          </div>
+        )}
+
+        {showCreateModal ? (
+          <CreateProjectModal
+            onClose={() => setShowCreateModal(false)}
+            onCreated={(createdProject) => {
+              setProjects((prev) => [createdProject, ...prev]);
+              setShowCreateModal(false);
+            }}
+            ui={ui}
+            theme={theme}
+          />
+        ) : null}
+
+        {showLegalModal && selectedProject ? (
+          <ProjectLegalModal
+            project={selectedProject}
+            onClose={() => {
+              setSelectedProject(null);
+              setShowLegalModal(false);
+            }}
+            onSaved={(updatedProject) => {
+              setProjects((prev) =>
+                prev.map((item) =>
+                  item.id === updatedProject.id ? updatedProject : item
+                )
+              );
+              setSelectedProject(updatedProject);
+            }}
+          />
+        ) : null}
+      </main>
+    </div>
+  );
+}
+
+export default BuilderProjects;

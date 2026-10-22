@@ -1,0 +1,2 @@
+ALTER TABLE investors
+    ADD COLUMN approved BOOLEAN DEFAULT FALSE;

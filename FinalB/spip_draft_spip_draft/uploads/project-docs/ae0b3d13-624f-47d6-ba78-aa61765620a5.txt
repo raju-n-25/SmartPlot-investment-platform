@@ -1,0 +1,459 @@
+Yes — let’s freeze the **upgraded target flow** first, then the implementation steps.
+
+This is the clean version I recommend based on your current project state and your requirement docs: legal compliance tracking, risk scoring, document verification logic, and no official government API integration.  
+
+# Final smooth flow
+
+## 1. Builder registers normally
+
+No approval at signup for now.
+
+Builder can:
+
+* register
+* log in
+* access builder dashboard
+
+This keeps onboarding simple.
+
+---
+
+## 2. Builder creates a project
+
+When builder creates a new project:
+
+* project is saved with `status = PENDING`
+* project is **not yet publishable**
+* project enters a review queue
+
+At this stage, builder also submits project-level legal/compliance info such as:
+
+* RERA ID or claimed RERA status
+* DC conversion status
+* Khata type
+* approval/legal documents
+* optional notes
+
+This fits your legal/compliance and document-management requirements.  
+
+---
+
+## 3. Our own legal verification engine runs
+
+This is the improvement.
+
+Instead of using real government APIs, your platform runs an **internal legal verification engine**.
+
+This engine does not claim government truth. It performs **simulated review** using rules such as:
+
+### RERA check
+
+* was RERA ID submitted?
+* does it match expected format?
+* was supporting document uploaded?
+* optionally, does it exist in your internal mock registry?
+
+### DC conversion check
+
+* is DC status provided?
+* is it marked converted / pending / not converted?
+* was supporting document uploaded?
+
+### Khata check
+
+* is Khata type present?
+* A / B / NA
+* assign legal weight accordingly
+
+### Document check
+
+* are required docs present?
+* are mandatory fields missing?
+
+Then the engine generates:
+
+* legal summary
+* review notes
+* risk score
+* compliance result such as `LOW_RISK`, `MEDIUM_RISK`, `HIGH_RISK`, `INCOMPLETE`
+
+This directly matches “legal summary generation,” “risk scoring,” “validation storage,” and “document verification logic.”  
+
+---
+
+## 4. Admin reviews the project once
+
+Admin sees the project in a pending review page.
+
+Admin also sees:
+
+* project details
+* submitted legal info
+* generated legal summary
+* risk score
+* missing docs / warnings
+
+Then admin chooses:
+
+* `APPROVED`
+* `REJECTED`
+* keep as `PENDING`
+
+Important meaning:
+this is **platform listing approval**, not official government certification.
+
+---
+
+## 5. Once project is approved, builder can add plots freely
+
+This is the key simplification.
+
+After project approval:
+
+* builder can add plots
+* no manual admin approval for every plot
+* plot creation becomes part of normal project operations
+
+This solves the current non-scalable plot-by-plot approval issue.
+
+---
+
+## 6. Each plot still carries legal intelligence
+
+Even though project is approved once, each plot can still show:
+
+* Khata type
+* RERA-related display inherited or linked from project
+* DC status inherited or linked from project
+* risk score
+* legal summary
+* warnings
+
+This keeps marketplace transparency strong and matches the requirement that compliance information and risk should be visible in the system. 
+
+---
+
+## 7. Marketplace shows only eligible plots
+
+Investor sees plots only when:
+
+* parent project is `APPROVED`
+* plot is available
+* booking status is not blocked/sold
+* required display/legal data exists
+
+Investor can also see:
+
+* risk category
+* legal summary
+* warnings
+
+So risky plots are not necessarily hidden; they are shown transparently.
+
+---
+
+## 8. Booking flow continues normally
+
+After marketplace listing:
+
+* investor browses
+* token blocks plot
+* booking countdown starts
+* payment/escrow simulation continues
+
+This keeps your existing booking and payment modules intact.  
+
+---
+
+# In one line
+
+**Open builder registration → project pending → internal legal verification engine runs → admin approves project once → builder adds plots freely → marketplace shows approved-project plots with risk/legal transparency.**
+
+---
+
+# Exact system design for the engine
+
+## What the engine should do
+
+Your engine should be one internal module/service, for example:
+
+`LegalVerificationEngine`
+
+It should evaluate 4 groups:
+
+### 1. RERA evaluation
+
+Inputs:
+
+* `reraId`
+* `reraDeclared`
+* `reraDocument`
+
+Outputs:
+
+* `reraReviewStatus`
+* `reraRemarks`
+
+### 2. DC evaluation
+
+Inputs:
+
+* `dcConverted`
+* `dcDocument`
+
+Outputs:
+
+* `dcReviewStatus`
+* `dcRemarks`
+
+### 3. Khata evaluation
+
+Inputs:
+
+* `khataType`
+
+Outputs:
+
+* `khataRiskWeight`
+* `khataRemarks`
+
+### 4. Document completeness evaluation
+
+Inputs:
+
+* uploaded files
+* mandatory fields
+
+Outputs:
+
+* `documentStatus`
+* `missingItems`
+
+Then combine all of that into:
+
+* `riskScore`
+* `riskCategory`
+* `legalSummary`
+* `reviewRecommendation`
+
+---
+
+# Suggested statuses
+
+## Project status
+
+* `PENDING`
+* `APPROVED`
+* `REJECTED`
+
+## Legal review status
+
+* `NOT_REVIEWED`
+* `REVIEWED`
+* `INCOMPLETE`
+* `HIGH_RISK`
+
+## Risk category
+
+* `LOW`
+* `MEDIUM`
+* `HIGH`
+
+## Booking status
+
+* `AVAILABLE`
+* `TOKEN_BLOCKED`
+* `SOLD`
+
+Keep these separate. That makes the system much cleaner.
+
+---
+
+# Exact steps to achieve this
+
+## Phase 1 — Freeze the business rule
+
+Team must agree on this:
+
+* no builder approval for now
+* no plot-by-plot approval
+* project is the main approval gate
+* legal verification is simulated internally
+* admin approves project publication based on engine result
+
+Do this first, otherwise coding will keep changing.
+
+---
+
+## Phase 2 — Decide where legal data lives
+
+You already have legal details in a table. Now standardize the ownership.
+
+Best practical rule:
+
+* project-level review is the approval gate
+* plot-level legal details are for display/risk transparency if needed
+
+If legal data is currently attached to plot only, decide whether:
+
+* you will keep it there and aggregate at project level, or
+* move core legal review inputs to project level
+
+For speed, I’d keep your current structure and build project review using available legal detail inputs.
+
+---
+
+## Phase 3 — Build the internal verification engine
+
+Create a service like:
+
+* `LegalVerificationService`
+* or `ComplianceEvaluationService`
+
+It should:
+
+* read submitted legal data
+* validate completeness
+* compute risk score
+* return a result object
+
+Example output object:
+
+* `riskScore`
+* `riskCategory`
+* `legalSummary`
+* `recommendation`
+* `missingDocuments`
+
+---
+
+## Phase 4 — Connect engine to project creation / review
+
+When project is created:
+
+* save project as `PENDING`
+
+When admin opens project review:
+
+* call engine
+* show evaluation result
+* allow approve/reject
+
+Optionally:
+
+* run engine automatically on save and persist the computed summary/risk
+
+---
+
+## Phase 5 — Stop relying on manual plot approval
+
+Current plot approval API can remain in code temporarily, but business flow should stop depending on it.
+
+Meaning:
+
+* marketplace should not wait for manual plot approval
+* marketplace should depend on `project.status = APPROVED` plus availability/booking conditions
+
+This is the key shift.
+
+---
+
+## Phase 6 — Update marketplace filter
+
+Marketplace logic should check:
+
+* parent project approved
+* plot available
+* booking status not blocked/sold
+
+And display:
+
+* risk score
+* legal summary
+* compliance badges
+
+This makes the legal module visible to investors, which is one of your major differentiators.
+
+---
+
+## Phase 7 — Update admin UI
+
+Admin should have:
+
+* pending projects list
+* legal summary section
+* risk score section
+* approve/reject buttons
+
+Admin does **not** need a giant “approve every plot” screen anymore.
+
+---
+
+## Phase 8 — Keep audit logging minimal
+
+For this new flow, log only:
+
+* `CREATE_PROJECT`
+* `REVIEW_PROJECT`
+* `APPROVE_PROJECT`
+* `REJECT_PROJECT`
+
+That is enough for traceability.
+
+---
+
+# Best implementation order
+
+Do it in this order so the team does not get blocked:
+
+## Step 1
+
+Finalize statuses and approval rule
+
+## Step 2
+
+Implement legal verification service
+
+## Step 3
+
+Attach engine result to admin project review
+
+## Step 4
+
+Connect project approve/reject in frontend
+
+## Step 5
+
+Change marketplace to use project approval instead of plot approval
+
+## Step 6
+
+Clean up leftover plot approval dependency
+
+---
+
+# Very short team-ready explanation
+
+You can tell them this:
+
+> We’ll move from manual plot-level approval to project-level approval.
+> Builder registration stays open.
+> When a builder creates a project, it goes to pending review.
+> Our internal legal verification engine evaluates submitted RERA, DC, Khata, and documents, then generates legal summary and risk score.
+> Admin reviews that once and approves the project.
+> After approval, builder can add plots freely, and those plots can appear in marketplace based on availability and booking state.
+
+---
+
+# What I need next to turn this into exact code steps
+
+Send these files first:
+
+* project entity
+* legal details entity
+* admin project controller
+* project service
+* marketplace query/service
+* current plot service approval methods
+
+Then I’ll map this flow into **exact backend changes file by file**.

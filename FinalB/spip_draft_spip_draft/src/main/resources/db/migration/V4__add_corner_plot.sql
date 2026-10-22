@@ -1,0 +1,2 @@
+ALTER TABLE plots
+    ADD COLUMN corner_plot BOOLEAN DEFAULT FALSE;
